@@ -1,7 +1,9 @@
 # WanderTales
-# Purpose: Create a platform where travelers can share their journey experiences, give travel tips and review services like hotels or tour companies.
+# Purpose: 
+Create a platform where travelers can share their journey experiences, give travel tips and review services like hotels or tour companies.
 
-# Target User: Travelers, Backpackers, Tourists and Travel bloggers.
+# Target User: 
+Travelers, Backpackers, Tourists and Travel bloggers.
 
 # References:
 OpenWeatherAPI:  https://openweathermap.org/ 
