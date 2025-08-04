@@ -11,8 +11,11 @@ OpenWeatherAPI:  https://openweathermap.org/
 
 ## MERN Stack Documentation:
 MongoDB
+
 Express.js
+
 React.js
+
 Node.js
 
 ## Functional Requirements:
