@@ -1,21 +1,21 @@
 # WanderTales
 A traveling journal website where people will share their journey stories and reviews and tips of a place where they visited, what they faced or what if someone wants to go there needs there they can add good company or hotel reviews too
-# Purpose: 
+## Purpose: 
 Create a platform where travelers can share their journey experiences, give travel tips and review services like hotels or tour companies.
 
-# Target User: 
+## Target User: 
 Travelers, Backpackers, Tourists and Travel bloggers.
 
-# References:
+## References:
 OpenWeatherAPI:  https://openweathermap.org/ 
 
-# MERN Stack Documentation:
+## MERN Stack Documentation:
 MongoDB
 Express.js
 React.js
 Node.js
 
-# Functional Requirements:
+## Functional Requirements:
 1. Rate and check hotels & restaurants with reviews
 2. Read others blogs and stories also share own stories
 3. Check destinations with additional information
