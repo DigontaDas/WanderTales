@@ -17,24 +17,32 @@ const HotelRestaurants = () => {
   }, []);
 
   const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [hotelsRes, restaurantsRes] = await Promise.all([
-        fetch('/api/hotels'),
-        fetch('/api/restaurants')
-      ]);
-      
-      const hotelsData = await hotelsRes.json();
-      const restaurantsData = await restaurantsRes.json();
-      
-      setHotels(hotelsData);
-      setRestaurants(restaurantsData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+    
+    const [hotelsRes, restaurantsRes] = await Promise.all([
+      fetch(`${backendUrl}/api/hotels`),
+      fetch(`${backendUrl}/api/restaurants`)
+    ]);
+    
+    if (!hotelsRes.ok || !restaurantsRes.ok) {
+      throw new Error('Failed to fetch data');
     }
-  };
+    
+    const hotelsData = await hotelsRes.json();
+    const restaurantsData = await restaurantsRes.json();
+    
+    setHotels(Array.isArray(hotelsData) ? hotelsData : []);
+    setRestaurants(Array.isArray(restaurantsData) ? restaurantsData : []);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    setHotels([]);
+    setRestaurants([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const filteredData = () => {
     let data = [];
@@ -105,7 +113,7 @@ const HotelRestaurants = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       {/* Hero Section */}
       <div className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
@@ -238,10 +246,7 @@ const HotelRestaurants = () => {
                       View Details
                     </button>
                     
-                    <button className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors duration-200">
-                      <Heart size={16} />
-                      <span className="text-sm">{Math.floor(Math.random() * 50)}</span>
-                    </button>
+                    
                   </div>
                 </div>
               </div>
