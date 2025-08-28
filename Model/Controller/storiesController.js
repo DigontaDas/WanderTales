@@ -1,13 +1,42 @@
 import {v2 as cloudinary} from 'cloudinary'
 import storiesModel from '../models/stories.js';
+import jwt from 'jsonwebtoken';
+import userModel from '../models/usermodel.js';
 
+const verifyToken = async (req) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1] || req.body.token;
+        if (!token) {
+            throw new Error('No token provided');
+        }
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await userModel.findById(decoded.id).select('-password');
+        
+        if (!user) {
+            throw new Error('User not found');
+        }
+        
+        return user;
+    } catch (error) {
+        throw new Error('Invalid token');
+    }
+};
 const addStory = async (req, res) => {
     try {
         console.log('Add story request received');
-        console.log('Request body:', req.body);
-        console.log('Request files:', req.files);
+        const { title, location, readTime, content, token } = req.body;
 
-        const { title, location, readTime, content } = req.body;
+        // Verify user authentication
+        let user;
+        try {
+            user = await verifyToken(req);
+        } catch (error) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "Authentication required. Please login to post a story." 
+            });
+        }
 
         // Validate required fields
         if (!title || !location || !readTime || !content) {
@@ -24,10 +53,9 @@ const addStory = async (req, res) => {
             try {
                 const result = await cloudinary.uploader.upload(image.path, { 
                     resource_type: "image",
-                    folder: "travel_stories" // Optional: organize images in folders
+                    folder: "travel_stories"
                 });
                 imageUrl = result.secure_url;
-                console.log('Image uploaded successfully:', imageUrl);
             } catch (uploadError) {
                 console.error('Image upload error:', uploadError);
                 return res.status(500).json({ 
@@ -49,15 +77,18 @@ const addStory = async (req, res) => {
                 month: 'short',
                 day: 'numeric'
             }),
-            content: content.trim()
+            content: content.trim(),
+            // ADD THIS AUTHOR DATA:
+            author: {
+                userId: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email
+            }
         };
-
-        console.log('Creating story with data:', storyData);
 
         const story = new storiesModel(storyData);
         await story.save();
-        
-        console.log('Story saved successfully:', story._id);
         
         res.status(201).json({ 
             success: true, 
@@ -73,7 +104,6 @@ const addStory = async (req, res) => {
         });
     }
 };
-
 const listStories = async (req, res) => {
     try {
         console.log('List stories request received');
