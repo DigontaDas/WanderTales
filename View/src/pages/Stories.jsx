@@ -211,7 +211,7 @@ const Stories = () => {
         if (fileInput) fileInput.value = "";
         fetchStories();
         fetchCommunityStats(); // Refresh stats after adding new story
-        fetchTrendingTopics(); // Refresh trending topics
+ 
       } else {
         alert(data.message || "Error adding story");
       }
@@ -335,12 +335,19 @@ const Stories = () => {
                     <div className="p-6">
                       {/* Story Header */}
                       <div className="flex items-center mb-4">
-                        <div className="w-15 h-15 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl mr-3">
-                          {story.author?.name ? (
-                            story.author.name.charAt(0).toUpperCase()
-                          ) : (
-                            <User className="w-8 h-8" />
-                          )}
+                        <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
+                          <img
+                            src={
+                              story?.author?.profileImage ||
+                              "https://imgs.search.brave.com/NipyceKQPtZaPfH0RF48R5LhQer1pG9rgXuw-A9vRaI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC8x/MC82OS91c2VyLWlj/b24tbWluaW1hbC1k/ZXNpZ24tbG9nby1z/aWxob3VldHRlLW1v/ZGVybi12ZWN0b3It/NTMyNzEwNjkuanBn"
+                            }
+                            alt={story?.author?.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src =
+                                "https://imgs.search.brave.com/NipyceKQPtZaPfH0RF48R5LhQer1pG9rgXuw-A9vRaI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC8x/MC82OS91c2VyLWlj/b24tbWluaW1hbC1k/ZXNpZ24tbG9nby1z/aWxob3VldHRlLW1v/ZGVybi12ZWN0b3It/NTMyNzEwNjkuanBn";
+                            }}
+                          />
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-2xl text-gray-800">
