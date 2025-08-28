@@ -66,7 +66,7 @@ function WeatherWidget() {
   };
 
   return (
-    <div className="bg-blue-900 rounded-4xl p-8 text-white shadow-2xl">
+    <div className="bg-gray-900 rounded-4xl p-8 text-white shadow-2xl">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-2">Plan with Real-time Weather</h2>
         <p className="text-blue-100 text-lg">Check weather conditions for your next destination</p>
