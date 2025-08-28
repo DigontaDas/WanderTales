@@ -156,25 +156,29 @@ const UserProfile = () => {
       }
 
       // Fetch bookmarked stories (only for own profile)
-      if (isOwnProfile && isAuthenticated) {
-        try {
-          const bookmarksResponse = await fetch(
-            `${backendUrl}/api/stories/list`
-          );
-          if (bookmarksResponse.ok) {
-            const allStoriesData = await bookmarksResponse.json();
-            if (allStoriesData.success) {
-              // Filter bookmarked stories
-              const bookmarkedStories = allStoriesData.stories.filter(
-                (story) => story.bookmarked === true
-              );
-              setUserBookmarks(bookmarkedStories || []);
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching bookmarks:", error);
-        }
+if (isOwnProfile && isAuthenticated) {
+  try {
+    const bookmarksResponse = await fetch(
+      `${backendUrl}/api/user/bookmarks`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId: currentUser._id }),
       }
+    );
+    if (bookmarksResponse.ok) {
+      const bookmarksData = await bookmarksResponse.json();
+      if (bookmarksData.success) {
+        setUserBookmarks(bookmarksData.bookmarks || []);
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching bookmarks:", error);
+  }
+}
 
       // Generate photos from stories and reviews
       const photos = [];
@@ -294,11 +298,11 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Back Button */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-gray-900 shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center text-xl text-gray-600 hover:text-gray-800 transition-colors"
+            className="flex items-center text-xl text-white hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to previous page
@@ -334,7 +338,7 @@ const UserProfile = () => {
               />
               <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
-
+ 
             {/* Profile Info */}
             <div>
               {isEditing && isOwnProfile ? (
@@ -520,16 +524,7 @@ const UserProfile = () => {
               >
                 Reviews ({userReviews.length})
               </button>
-              <button
-                onClick={() => setActiveTab("photos")}
-                className={`py-4 px-6 font-medium text-xl ${
-                  activeTab === "photos"
-                    ? "text-green-600 border-b-2 border-green-600 bg-green-50"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Photos ({userPhotos.length})
-              </button>
+               
               {isOwnProfile && (
                 <button
                   onClick={() => setActiveTab("bookmarks")}
@@ -673,39 +668,7 @@ const UserProfile = () => {
               </div>
             )}
 
-            {/* Photos Tab */}
-            {activeTab === "photos" && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {userPhotos.length === 0 ? (
-                  <div className="col-span-full text-center py-12">
-                    <div className="text-gray-400 mb-4">
-                      <Camera size={48} className="mx-auto" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No photos yet
-                    </h3>
-                    <p className="text-gray-600">
-                      {isOwnProfile
-                        ? "Photos from your stories and reviews will appear here."
-                        : "This user hasn't shared any photos yet."}
-                    </p>
-                  </div>
-                ) : (
-                  userPhotos.map((photo, index) => (
-                    <div key={index} className="relative group cursor-pointer">
-                      <img
-                        src={photo}
-                        alt={`Photo ${index + 1}`}
-                        className="w-full h-48 object-cover rounded-lg group-hover:opacity-75 transition-opacity duration-200"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
-                        <Camera className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
+            
             {/* Bookmarks Tab - Only for own profile */}
             {activeTab === "bookmarks" && isOwnProfile && (
               <div className="grid gap-6">
