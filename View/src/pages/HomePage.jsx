@@ -1,7 +1,7 @@
 import React from 'react'
-import Latest_news from './Latest_news';
 import WeatherWidget from './WeatherWidget';
 import heroImage from "../assets/bg2.jpg"
+import Stories from './Stories';
 
 // Main Home Page Component
 function HomePage() {
@@ -16,9 +16,9 @@ function HomePage() {
         />
       </div>
       <main className="relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-30 pb-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-60 pb-20">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-8">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
               Share Your Journey
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto">
@@ -28,8 +28,8 @@ function HomePage() {
         </div>
 
         {/* Features Section */}
-        <div className="bg-white/10 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-40">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
               {/* Feature 1 */}
@@ -69,19 +69,9 @@ function HomePage() {
         </div>
 
         {/* Weather Widget Section */}
-        <div className="bg-gray-900/50 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <WeatherWidget />
           </div>
-        </div>
-
-        {/* Latest Travel Stories Section */}
-        <div className="bg-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <h2 className="text-3xl font-bold text-white mb-8">Latest Travel Stories</h2>
-              <Latest_news/>
-          </div>
-        </div>
       </main>
     </div>
   );
