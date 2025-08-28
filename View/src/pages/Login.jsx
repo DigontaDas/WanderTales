@@ -1,68 +1,64 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, User, Lock } from 'lucide-react';
-
+import React, { useState } from "react";
+import { Eye, EyeOff, User, Lock } from "lucide-react";
+import { useAuth } from "../context/AuthContext"; // Adjust path as needed
+import { useNavigate } from "react-router";
 const Login = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    username: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error when user starts typing
-    if (error) setError('');
+    if (error) setError("");
   };
 
   // Handle form submission
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
-    // Basic validation
     if (!formData.username.trim()) {
-      setError('Username is required');
+      setError("Username is required");
       setIsLoading(false);
       return;
     }
-    
+
     if (!formData.password) {
-      setError('Password is required');
+      setError("Password is required");
       setIsLoading(false);
       return;
     }
 
     try {
-      // Simulate API call - Replace this with your Model/API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // TODO: Replace with actual authentication call to your Model
-      // Example: const result = await AuthModel.login(formData.username, formData.password);
-      
-      // Demo authentication - remove this when connecting to your backend
-      if (formData.username === 'demo' && formData.password === 'password') {
-        console.log('Login successful');
-        
-        // Store login state (you can modify this based on your needs)
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('username', formData.username);
-        
-        // Redirect to home page
-        window.location.href = '/';
+      const result = await login(formData.username, formData.password);
+
+      if (result && result.success) {
+        if (result.isAdmin) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
-        setError('Invalid username or password');
+        setError(result?.message || "Invalid username or password");
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
-      console.error('Login error:', err);
+      setError("Login failed. Please try again.");
+      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -81,11 +77,14 @@ const Login = () => {
         </div>
 
         {/* Login Form */}
-        <div className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             {/* Username Field */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Username
               </label>
               <div className="relative">
@@ -100,13 +99,17 @@ const Login = () => {
                   onChange={handleInputChange}
                   className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Enter your username"
+                  required
                 />
               </div>
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Password
               </label>
               <div className="relative">
@@ -116,11 +119,12 @@ const Login = () => {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleInputChange}
                   className="appearance-none relative block w-full pl-10 pr-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Enter your password"
+                  required
                 />
                 <button
                   type="button"
@@ -153,7 +157,10 @@ const Login = () => {
                 type="checkbox"
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-sm text-gray-700"
+              >
                 Remember me
               </label>
             </div>
@@ -162,7 +169,7 @@ const Login = () => {
               <button
                 type="button"
                 className="font-medium text-blue-600 hover:text-blue-500"
-                onClick={() => console.log('Forgot password clicked')}
+                onClick={() => console.log("Forgot password clicked")}
               >
                 Forgot password?
               </button>
@@ -172,21 +179,36 @@ const Login = () => {
           {/* Submit Button */}
           <div>
             <button
-              type="button"
-              onClick={handleSubmit}
+              type="submit"
               disabled={isLoading}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               {isLoading ? (
                 <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Signing in...
                 </span>
               ) : (
-                'Sign in'
+                "Sign in"
               )}
             </button>
           </div>
@@ -194,24 +216,22 @@ const Login = () => {
           {/* Sign Up Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <button
                 type="button"
-                onClick={() => window.location.href = '/Signup'}
+                onClick={() => (window.location.href = "/signup")}
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
                 Sign up here
               </button>
             </p>
           </div>
-
-          
-        </div>
+        </form>
 
         {/* Back to Home */}
         <div className="text-center">
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => (window.location.href = "/")}
             className="text-sm text-black hover:text-gray-700"
           >
             ← Back to Home
