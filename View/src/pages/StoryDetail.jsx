@@ -10,19 +10,21 @@ import {
   Bookmark,
   User,
 } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const StoryDetail = () => {
   const { id: storyId } = useParams();
   const navigate = useNavigate();
+  const { user: currentUser, token, isAuthenticated } = useAuth();
+  const [newComment, setNewComment] = useState("");
   const [story, setStory] = useState(null);
   const [author, setAuthor] = useState(null);
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState("");
-  const [commentAuthor, setCommentAuthor] = useState("Anonymous");
+
   const [loadingComments, setLoadingComments] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,6 +34,7 @@ const StoryDetail = () => {
     if (storyId) {
       fetchStoryDetails();
       fetchComments();
+      fetchBookmarkStatus();
     } else {
       setError("Story ID not found");
       setLoading(false);
@@ -63,8 +66,8 @@ const StoryDetail = () => {
             email: data.story.author.email,
             bio: "Passionate traveler sharing authentic experiences ✈️",
             verified: false,
-            followers: 542,
-            following: 328,
+            followers: 5,
+            following: 3,
           });
         } else {
           setAuthor({
@@ -73,8 +76,8 @@ const StoryDetail = () => {
             username: "@traveler",
             bio: "Passionate traveler sharing authentic experiences ✈️",
             verified: false,
-            followers: 542,
-            following: 328,
+            followers: 5,
+            following: 3,
           });
         }
       } else {
@@ -112,10 +115,33 @@ const StoryDetail = () => {
       setLoadingComments(false);
     }
   };
-
-  const handleLike = async () => {
+  const fetchBookmarkStatus = async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/stories/like`, {
+      const response = await fetch(
+        `${backendUrl}/api/stories/bookmark-status`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ storyId }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setBookmarked(data.bookmarked);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching bookmark status:", error);
+    }
+  };
+  
+  const handleBookmark = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/stories/bookmark`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,24 +155,11 @@ const StoryDetail = () => {
 
       const data = await response.json();
       if (data.success) {
-        setLiked(!liked);
-        // Update the story's like count
-        setStory((prev) => ({
-          ...prev,
-          likes: liked ? (prev.likes || 1) - 1 : (prev.likes || 0) + 1,
-        }));
+        setBookmarked(data.bookmarked);
       }
     } catch (error) {
-      console.error("Error liking story:", error);
-    }
-  };
-
-  const handleBookmark = async () => {
-    try {
-      setBookmarked(!bookmarked);
-      console.log("Bookmark functionality - to be implemented in backend");
-    } catch (error) {
       console.error("Error bookmarking story:", error);
+      alert("Error bookmarking story. Please try again.");
     }
   };
 
@@ -187,6 +200,12 @@ const StoryDetail = () => {
     }
   };
   const handleCommentSubmit = async () => {
+    if (!isAuthenticated) {
+      alert("Please login to comment");
+      navigate("/login");
+      return;
+    }
+
     if (!newComment.trim()) return;
 
     try {
@@ -194,11 +213,13 @@ const StoryDetail = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           storyId,
           comment: newComment,
-          authorName: commentAuthor,
+          authorName: currentUser.name,
+          authorId: currentUser._id,
         }),
       });
 
@@ -220,7 +241,6 @@ const StoryDetail = () => {
       alert("Error posting comment. Please try again.");
     }
   };
-
   const formatDate = (dateString) => {
     if (!dateString) return "Recently";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -233,7 +253,7 @@ const StoryDetail = () => {
   const goBack = () => {
     navigate(-1);
   };
-
+  
   if (error || !story) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -312,16 +332,27 @@ const StoryDetail = () => {
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
-                  {story?.author?.name ? (
-                    story.author.name.charAt(0).toUpperCase()
-                  ) : (
-                    <User className="w-6 h-6" />
-                  )}
+                <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
+                  <img
+                    src={
+                      story?.author?.profileImage ||
+                      "https://imgs.search.brave.com/NipyceKQPtZaPfH0RF48R5LhQer1pG9rgXuw-A9vRaI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC8x/MC82OS91c2VyLWlj/b24tbWluaW1hbC1k/ZXNpZ24tbG9nby1z/aWxob3VldHRlLW1v/ZGVybi12ZWN0b3It/NTMyNzEwNjkuanBn"
+                    }
+                    alt={story?.author?.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://imgs.search.brave.com/NipyceKQPtZaPfH0RF48R5LhQer1pG9rgXuw-A9vRaI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC8x/MC82OS91c2VyLWlj/b24tbWluaW1hbC1k/ZXNpZ24tbG9nby1z/aWxob3VldHRlLW1v/ZGVybi12ZWN0b3It/NTMyNzEwNjkuanBn";
+                    }}
+                  />
                 </div>
                 <div
                   className="cursor-pointer hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2"
-                  onClick={() => navigate(`/user/${story?.author?.userId}`)}
+                  onClick={() => {
+                    if (story?.author?.userId) {
+                      navigate(`/user/${story.author.userId}`);
+                    }
+                  }}
                 >
                   <h3 className="font-semibold text-3xl text-gray-900 hover:text-blue-600">
                     {story?.author?.name || "Anonymous"}
@@ -341,15 +372,6 @@ const StoryDetail = () => {
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
-                <button
-                  onClick={handleLike}
-                  className={`flex items-center space-x-2 transition-colors ${
-                    liked ? "text-red-500" : "text-gray-600 hover:text-red-500"
-                  }`}
-                >
-                  <Heart className={`w-8 h-8 ${liked ? "fill-current" : ""}`} />
-                  <span>{story.likes || 0}</span>
-                </button>
                 <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
                   <MessageCircle className="w-8 h-8" />
                   <span>{story.comments || 0}</span>
@@ -364,7 +386,7 @@ const StoryDetail = () => {
               </div>
               <button
                 onClick={handleBookmark}
-                className={`transition-colors ${
+                className={`flex items-center space-x-2 transition-colors ${
                   bookmarked
                     ? "text-yellow-500"
                     : "text-gray-600 hover:text-yellow-500"
@@ -436,41 +458,64 @@ const StoryDetail = () => {
 
           {/* Comments Section */}
           <div className="p-6 border-t border-gray-200">
-            <h3 className="text-4xl font-bold mb-6">
+            <h3 className="text-2xl font-bold mb-6">
               Comments ({story.comments || 0})
             </h3>
 
-            {/* Add Comment Section */}
-            <div className="mb-6">
-              <div className="flex space-x-4">
-                <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={commentAuthor}
-                    onChange={(e) => setCommentAuthor(e.target.value)}
-                    placeholder="Your name"
-                    className="w-full p-2 mb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Share your thoughts about this travel story..."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    rows={3}
-                  />
-                  <button
-                    onClick={handleCommentSubmit}
-                    disabled={!newComment.trim()}
-                    className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Post Comment
-                  </button>
+            {isAuthenticated ? (
+              <div className="mb-6">
+                <div className="flex space-x-4">
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+                    <img
+                      src={
+                        comments.authorProfileImage ||
+                        "https://imgs.search.brave.com/NipyceKQPtZaPfH0RF48R5LhQer1pG9rgXuw-A9vRaI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC8x/MC82OS91c2VyLWlj/b24tbWluaW1hbC1k/ZXNpZ24tbG9nby1z/aWxob3VldHRlLW1v/ZGVybi12ZWN0b3It/NTMyNzEwNjkuanBn"
+                      }
+                      alt={comments.authorName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://imgs.search.brave.com/NipyceKQPtZaPfH0RF48R5LhQer1pG9rgXuw-A9vRaI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC8x/MC82OS91c2VyLWlj/b24tbWluaW1hbC1k/ZXNpZ24tbG9nby1z/aWxob3VldHRlLW1v/ZGVybi12ZWN0b3It/NTMyNzEwNjkuanBn";
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="mb-2">
+                      <span className="font-medium text-gray-700">
+                        {currentUser.name}
+                      </span>
+                    </div>
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Share your thoughts about this travel story..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      rows={3}
+                    />
+                    <button
+                      onClick={handleCommentSubmit}
+                      disabled={!newComment.trim()}
+                      className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Post Comment
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="mb-6 text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-gray-600">
+                  Please{" "}
+                  <button
+                    onClick={() => navigate("/login")}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    login
+                  </button>{" "}
+                  to comment on this story.
+                </p>
+              </div>
+            )}
 
             {/* Comments List */}
             {loadingComments ? (
