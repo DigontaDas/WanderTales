@@ -5,7 +5,7 @@ const destinationSchema=new mongoose.Schema({
     rating:{type:Number,required:true},
     image: {type:Array , required:true},
     category: {type: String, required: true},
-    used_in_stories: {type: Number, required: true}
+    used_in_stories: {type: Number, default: 0}
 })
 
 const destinationModel=mongoose.models.destination || mongoose.model("destination",destinationSchema)
