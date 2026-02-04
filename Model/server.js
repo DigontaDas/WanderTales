@@ -26,7 +26,7 @@ app.use(cors({
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000',
-    'https://WanderTales.vercel.app'
+    'https://wander-tales-lime.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -54,3 +54,4 @@ app.get('/',(req,res)=>{
 })
 
 app.listen(port,()=>console.log("Server is started on port "+port))
+
