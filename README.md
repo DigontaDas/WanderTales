@@ -1,7 +1,7 @@
 # WanderTales
 A traveling journal website where people will share their journey stories and reviews and tips of a place where they visited, what they faced or what if someone wants to go there needs there they can add good company or hotel reviews too
 
-![Main logo](path/to/Logo.png)   
+![Main logo](path/to/image.png)   
 ## Purpose: 
 Create a platform where travelers can share their journey experiences, give travel tips and review services like hotels or tour companies.
 
